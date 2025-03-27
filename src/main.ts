@@ -16,6 +16,7 @@ async function bootstrap() {
       'The E-Commerce API description',
     )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentFactory = () =>
     SwaggerModule.createDocument(app, config);
@@ -26,7 +27,9 @@ async function bootstrap() {
   );
 
   // Global prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('e-commerce-v1', {
+    exclude: [''], // Mengecualikan root path dari prefix
+  });
 
   // Global interceptors
   app.useGlobalInterceptors(
