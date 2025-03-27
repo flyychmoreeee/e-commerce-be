@@ -12,6 +12,8 @@ export const SUCCESS_CODES = {
   LOGOUT_SUCCESS: '2103',
   PASSWORD_UPDATE_SUCCESS: '2107',
   TOKEN_VALID: '2108',
+  REGISTRATION_SUCCESS: '2109',
+  TOKEN_REFRESHED: '2110',
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -42,6 +44,10 @@ export const SUCCESS_MESSAGES = {
   [SUCCESS_CODES.PASSWORD_UPDATE_SUCCESS]:
     'Password has been successfully reset',
   [SUCCESS_CODES.TOKEN_VALID]: 'Token is valid',
+  [SUCCESS_CODES.REGISTRATION_SUCCESS]:
+    'User registered successfully',
+  [SUCCESS_CODES.TOKEN_REFRESHED]:
+    'Token refreshed',
 } as const;
 
 export const ERROR_CODES = {
@@ -77,6 +83,8 @@ export const ERROR_CODES = {
   USER_ALREADY_VERIFIED: '1208',
   RESET_PASSWORD_TOO_SOON: '1209',
   PASSWORD_NOT_SAME: '1210',
+  INVALID_CREDENTIALS: '1211',
+  INVALID_REFRESH_TOKEN: '1302',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -137,4 +145,8 @@ export const ERROR_MESSAGES = {
     'Password reset request can only be made once a month. Please try again later.',
   [ERROR_CODES.PASSWORD_NOT_SAME]:
     'The new password cannot be the same as the previous password.',
+  [ERROR_CODES.INVALID_CREDENTIALS]:
+    'Invalid credentials',
+  [ERROR_CODES.INVALID_REFRESH_TOKEN]:
+    'Invalid refresh token',
 } as const;
