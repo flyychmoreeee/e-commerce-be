@@ -9,12 +9,13 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaModule } from '../../config/prisma/prisma.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
-
+import { MailModule } from '../mail/mail.module';
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
     PassportModule,
+    MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

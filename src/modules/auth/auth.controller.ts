@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Body,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -12,7 +13,10 @@ import { AuthService } from './auth.service';
 import { RegistrationDto } from './dto/registration.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { SUCCESS_CODES } from 'src/common/constants/response.constants';
+import {
+  SendVerificationDto,
+  VerifyEmailDto,
+} from './dto/verify-email.dto';
 import {
   REGISTRATION_RESPONSE,
   REGISTRATION_VALIDATION_ERROR,
@@ -22,6 +26,8 @@ import {
   REFRESH_TOKEN_SUCCESS,
   REFRESH_TOKEN_UNAUTHORIZED,
 } from './swagger/auth.swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+import { ERROR_CODES } from 'src/common/constants/response.constants';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -40,15 +46,57 @@ export class AuthController {
   async register(
     @Body() registrationDto: RegistrationDto,
   ) {
-    const data = await this.authService.register(
+    return await this.authService.register(
       registrationDto,
     );
+  }
 
-    return {
-      code: SUCCESS_CODES.REGISTRATION_SUCCESS,
-      entity: 'User',
-      data,
-    };
+  @Post('send-verification')
+  @Public()
+  @ApiOperation({
+    summary: 'Send email verification code',
+  })
+  async sendVerificationCode(
+    @Body()
+    sendVerificationDto: SendVerificationDto,
+  ) {
+    return this.authService.sendVerificationCode(
+      sendVerificationDto.email,
+    );
+  }
+
+  @Post('verify-email')
+  @Public()
+  @ApiOperation({
+    summary: 'Verify email with OTP code',
+  })
+  async verifyEmail(
+    @Body() verifyEmailDto: VerifyEmailDto,
+  ) {
+    try {
+      const result =
+        await this.authService.verifyEmail(
+          verifyEmailDto,
+        );
+
+      // Pastikan token ada dalam response
+      if (
+        !result.data?.accessToken ||
+        !result.data?.refreshToken
+      ) {
+        throw new InternalServerErrorException({
+          code: ERROR_CODES.TOKEN_GENERATION_FAILED,
+          error_message:
+            'Failed to generate authentication tokens',
+        });
+      }
+
+      return result;
+    } catch (error) {
+      // Log error untuk debugging
+      console.error('Verification error:', error);
+      throw error;
+    }
   }
 
   @Post('login')

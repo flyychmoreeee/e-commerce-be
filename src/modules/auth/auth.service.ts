@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { RegistrationDto } from './dto/registration.dto';
 import { LoginDto } from './dto/login.dto';
@@ -13,7 +14,10 @@ import { ConfigService } from '@nestjs/config';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
+  SUCCESS_CODES,
 } from '../../common/constants/response.constants';
+import { MailService } from '../mail/mail.service';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,40 +25,203 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
+
+  private generateOTP(): string {
+    return Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+  }
+
+  private generateTokens(payload: {
+    sub: number;
+    email: string;
+  }) {
+    return Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret:
+          this.configService.get<string>(
+            'JWT_SECRET',
+          ),
+        expiresIn: '15m',
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get<string>(
+          'JWT_REFRESH_SECRET',
+        ),
+        expiresIn: '7d',
+      }),
+    ]);
+  }
+
+  async sendVerificationCode(email: string) {
+    try {
+      const verificationCode = this.generateOTP();
+      const verificationExpires = new Date(
+        Date.now() + 15 * 60 * 1000,
+      ); // 15 menit
+
+      // Cek apakah email sudah terdaftar dan terverifikasi
+      const existingUser =
+        await this.prisma.user.findUnique({
+          where: { email },
+          select: { isVerified: true },
+        });
+
+      if (existingUser?.isVerified) {
+        throw new ConflictException({
+          code: ERROR_CODES.EMAIL_ALREADY_VERIFIED,
+          error_message: 'Email already verified',
+        });
+      }
+
+      // Simpan atau update kode verifikasi
+      await this.prisma.user.upsert({
+        where: { email },
+        create: {
+          email,
+          verificationCode,
+          verificationExpires,
+          username: '', // temporary
+          password: '', // temporary
+          role: 'BUYER',
+        },
+        update: {
+          verificationCode,
+          verificationExpires,
+        },
+      });
+
+      // Kirim email verifikasi
+      await this.mailService.sendVerificationEmail(
+        email,
+        verificationCode,
+      );
+
+      return {
+        success: true,
+        message:
+          'Verification code sent successfully',
+        code: SUCCESS_CODES.VERIFICATION_SENT,
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new InternalServerErrorException({
+        code: ERROR_CODES.APP_SERVER_ERROR,
+        error_message:
+          ERROR_MESSAGES[
+            ERROR_CODES.APP_SERVER_ERROR
+          ],
+      });
+    }
+  }
+
+  async verifyEmail(
+    verifyEmailDto: VerifyEmailDto,
+  ) {
+    const { email, code } = verifyEmailDto;
+
+    const user =
+      await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+    if (!user || user.verificationCode !== code) {
+      throw new UnauthorizedException({
+        code: ERROR_CODES.INVALID_VERIFICATION_CODE,
+        error_message:
+          'Invalid verification code',
+      });
+    }
+
+    if (
+      user.verificationExpires &&
+      user.verificationExpires < new Date()
+    ) {
+      throw new UnauthorizedException({
+        code: ERROR_CODES.VERIFICATION_EXPIRED,
+        error_message:
+          'Verification code has expired',
+      });
+    }
+
+    // Update user dan generate tokens
+    const updatedUser =
+      await this.prisma.user.update({
+        where: { email },
+        data: {
+          isVerified: true,
+          verificationCode: null,
+          verificationExpires: null,
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+        },
+      });
+
+    // Generate tokens
+    const [accessToken, refreshToken] =
+      await this.generateTokens({
+        sub: updatedUser.id,
+        email: updatedUser.email,
+      });
+
+    // Simpan refresh token
+    await this.prisma.user.update({
+      where: { id: updatedUser.id },
+      data: { refreshToken },
+    });
+
+    // Kirim email selamat datang
+    await this.mailService.sendWelcomeEmail(
+      email,
+      updatedUser.username,
+    );
+
+    return {
+      success: true,
+      message:
+        'Registration completed successfully',
+      code: SUCCESS_CODES.REGISTRATION_SUCCESS,
+      data: {
+        accessToken,
+        refreshToken,
+        user: updatedUser,
+      },
+    };
+  }
 
   async register(
     registrationDto: RegistrationDto,
   ) {
     try {
-      // Check if email already exists
+      const { email, username, password } =
+        registrationDto;
+
+      // Cek email sudah terdaftar
       const existingUser =
         await this.prisma.user.findUnique({
-          where: {
-            email: registrationDto.email,
-          },
+          where: { email },
         });
 
-      if (existingUser) {
+      if (existingUser?.isVerified) {
         throw new ConflictException({
-          code: ERROR_CODES.CONFLICT,
+          code: ERROR_CODES.EMAIL_ALREADY_VERIFIED,
           error_message:
-            ERROR_MESSAGES[ERROR_CODES.CONFLICT](
-              'Email',
-            ),
-          details: {
-            field: 'email',
-            message: 'Email already exists',
-          },
+            'Email already registered',
         });
       }
 
-      // Check if username already exists
+      // Cek username unik
       const existingUsername =
         await this.prisma.user.findUnique({
-          where: {
-            username: registrationDto.username,
-          },
+          where: { username },
         });
 
       if (existingUsername) {
@@ -71,73 +238,63 @@ export class AuthService {
         });
       }
 
-      // Hash password
+      // Generate OTP dan hash password
+      const verificationCode = this.generateOTP();
+      const verificationExpires = new Date(
+        Date.now() + 15 * 60 * 1000,
+      ); // 15 menit
       const hashedPassword = await bcrypt.hash(
-        registrationDto.password,
+        password,
         10,
       );
 
-      // Create user
-      const user = await this.prisma.user.create({
-        data: {
-          ...registrationDto,
+      // Buat atau update user
+      const user = await this.prisma.user.upsert({
+        where: { email },
+        create: {
+          email,
+          username,
           password: hashedPassword,
+          verificationCode,
+          verificationExpires,
+          isVerified: false,
+          role: 'BUYER',
         },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
+        update: {
+          username,
+          password: hashedPassword,
+          verificationCode,
+          verificationExpires,
         },
       });
 
-      // Generate tokens
-      const payload = {
-        sub: user.id,
-        email: user.email,
-      };
-
-      const [accessToken, refreshToken] =
-        await Promise.all([
-          this.jwtService.signAsync(payload, {
-            secret:
-              this.configService.get<string>(
-                'JWT_SECRET',
-              ),
-            expiresIn: '15m',
-          }),
-          this.jwtService.signAsync(payload, {
-            secret:
-              this.configService.get<string>(
-                'JWT_REFRESH_SECRET',
-              ),
-            expiresIn: '7d',
-          }),
-        ]);
-
-      // Store refresh token
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken },
-      });
+      // Kirim email verifikasi
+      await this.mailService.sendVerificationEmail(
+        email,
+        verificationCode,
+      );
 
       return {
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
+        success: true,
+        message:
+          'Registration pending. Please check your email for verification code',
+        code: SUCCESS_CODES.REGISTRATION_PENDING,
+        data: {
+          email,
+          username,
         },
       };
     } catch (error) {
       if (error instanceof ConflictException) {
         throw error;
       }
-      throw error;
+      throw new InternalServerErrorException({
+        code: ERROR_CODES.APP_SERVER_ERROR,
+        error_message:
+          ERROR_MESSAGES[
+            ERROR_CODES.APP_SERVER_ERROR
+          ],
+      });
     }
   }
 

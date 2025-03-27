@@ -14,6 +14,9 @@ export const SUCCESS_CODES = {
   TOKEN_VALID: '2108',
   REGISTRATION_SUCCESS: '2109',
   TOKEN_REFRESHED: '2110',
+  VERIFICATION_SENT: '2201',
+  EMAIL_VERIFIED: '2202',
+  REGISTRATION_PENDING: '2203',
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -48,6 +51,12 @@ export const SUCCESS_MESSAGES = {
     'User registered successfully',
   [SUCCESS_CODES.TOKEN_REFRESHED]:
     'Token refreshed',
+  [SUCCESS_CODES.VERIFICATION_SENT]:
+    'Verification code sent successfully',
+  [SUCCESS_CODES.EMAIL_VERIFIED]:
+    'Email verified successfully',
+  [SUCCESS_CODES.REGISTRATION_PENDING]:
+    'Registration pending. Please check your email for verification code',
 } as const;
 
 export const ERROR_CODES = {
@@ -85,6 +94,11 @@ export const ERROR_CODES = {
   PASSWORD_NOT_SAME: '1210',
   INVALID_CREDENTIALS: '1211',
   INVALID_REFRESH_TOKEN: '1302',
+  EMAIL_NOT_VERIFIED: '1401',
+  INVALID_VERIFICATION_CODE: '1402',
+  VERIFICATION_EXPIRED: '1403',
+  EMAIL_ALREADY_VERIFIED: '1404',
+  TOKEN_GENERATION_FAILED: '1405',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -149,4 +163,14 @@ export const ERROR_MESSAGES = {
     'Invalid credentials',
   [ERROR_CODES.INVALID_REFRESH_TOKEN]:
     'Invalid refresh token',
+  [ERROR_CODES.EMAIL_NOT_VERIFIED]:
+    'Email not verified',
+  [ERROR_CODES.INVALID_VERIFICATION_CODE]:
+    'Invalid verification code',
+  [ERROR_CODES.VERIFICATION_EXPIRED]:
+    'Verification code has expired',
+  [ERROR_CODES.EMAIL_ALREADY_VERIFIED]:
+    'Email already verified',
+  [ERROR_CODES.TOKEN_GENERATION_FAILED]:
+    'Failed to generate authentication tokens',
 } as const;
