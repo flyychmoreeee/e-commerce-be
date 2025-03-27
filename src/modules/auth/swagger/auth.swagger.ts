@@ -10,11 +10,16 @@ export const REGISTRATION_RESPONSE: ApiResponseOptions =
         code: '2002',
         message: 'User created',
         data: {
-          id: 1,
-          username: 'John Doe',
-          email: 'john.doe@example.com',
-          createdAt: '2024-03-21T10:00:00.000Z',
-          updatedAt: '2024-03-21T10:00:00.000Z',
+          accessToken:
+            'DGviuAtXwkNhoZJp2zVewVfh5DpMjucQVKm1dL5csisv...',
+          refreshToken:
+            'DGviuAtXwkNhoZJp2zVewVfh5DpMjucQVKm1dL5csisv...',
+          user: {
+            id: 1,
+            username: 'John Doe',
+            email: 'john.doe@example.com',
+            role: 'BUYER',
+          },
         },
       },
     },

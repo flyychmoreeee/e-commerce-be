@@ -13,7 +13,6 @@ import { ConfigService } from '@nestjs/config';
 import {
   ERROR_CODES,
   ERROR_MESSAGES,
-  SUCCESS_CODES,
 } from '../../common/constants/response.constants';
 
 @Injectable()
@@ -88,15 +87,51 @@ export class AuthService {
           id: true,
           username: true,
           email: true,
+          role: true,
           createdAt: true,
           updatedAt: true,
         },
       });
 
+      // Generate tokens
+      const payload = {
+        sub: user.id,
+        email: user.email,
+      };
+
+      const [accessToken, refreshToken] =
+        await Promise.all([
+          this.jwtService.signAsync(payload, {
+            secret:
+              this.configService.get<string>(
+                'JWT_SECRET',
+              ),
+            expiresIn: '15m',
+          }),
+          this.jwtService.signAsync(payload, {
+            secret:
+              this.configService.get<string>(
+                'JWT_REFRESH_SECRET',
+              ),
+            expiresIn: '7d',
+          }),
+        ]);
+
+      // Store refresh token
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken },
+      });
+
       return {
-        data: user,
-        code: SUCCESS_CODES.DATA_CREATED,
-        entity: 'User',
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
       };
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -173,18 +208,14 @@ export class AuthService {
       });
 
       return {
-        data: {
-          accessToken,
-          refreshToken,
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-          },
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
         },
-        code: SUCCESS_CODES.LOGIN_SUCCESS,
-        entity: 'User',
       };
     } catch (error) {
       if (
@@ -263,18 +294,14 @@ export class AuthService {
       });
 
       return {
-        data: {
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-          },
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
         },
-        code: SUCCESS_CODES.TOKEN_REFRESHED,
-        entity: 'User',
       };
     } catch (error) {
       if (
