@@ -10,12 +10,14 @@ import { AuthController } from './auth.controller';
 import { PrismaModule } from '../../config/prisma/prisma.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from '../mail/mail.module';
+import { GoogleStrategy } from './strategies/google.strategy';
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
     PassportModule,
     MailModule,
+    PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -29,7 +31,11 @@ import { MailModule } from '../mail/mail.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    GoogleStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

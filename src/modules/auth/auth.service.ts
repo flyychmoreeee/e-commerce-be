@@ -475,4 +475,80 @@ export class AuthService {
       });
     }
   }
+
+  async googleLogin(user: any) {
+    if (!user) {
+      throw new UnauthorizedException({
+        code: ERROR_CODES.GOOGLE_AUTH_FAILED,
+        error_message: 'No user from google',
+      });
+    }
+
+    try {
+      // Cek apakah user sudah terdaftar
+      let dbUser =
+        await this.prisma.user.findUnique({
+          where: { email: user.email },
+        });
+
+      if (!dbUser) {
+        // Buat user baru jika belum terdaftar
+        const username = `${user.firstName}${Math.random().toString(36).slice(-4)}`;
+        dbUser = await this.prisma.user.create({
+          data: {
+            email: user.email,
+            username,
+            isVerified: true, // Email dari Google sudah terverifikasi
+            role: 'BUYER',
+            password: '',
+            googleId: user.id,
+            picture: user.picture,
+          },
+        });
+      }
+
+      // Generate tokens
+      const [accessToken, refreshToken] =
+        await this.generateTokens({
+          sub: dbUser.id,
+          email: dbUser.email,
+        });
+
+      // Update refresh token
+      await this.prisma.user.update({
+        where: { id: dbUser.id },
+        data: { refreshToken },
+      });
+
+      return {
+        success: true,
+        code: SUCCESS_CODES.GOOGLE_LOGIN_SUCCESS,
+        data: {
+          accessToken,
+          refreshToken,
+          user: {
+            id: dbUser.id,
+            email: dbUser.email,
+            username: dbUser.username,
+            role: dbUser.role,
+            picture: dbUser.picture,
+          },
+        },
+      };
+    } catch (error) {
+      if (
+        error instanceof
+        InternalServerErrorException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException({
+        code: ERROR_CODES.GOOGLE_AUTH_ERROR,
+        error_message:
+          ERROR_MESSAGES[
+            ERROR_CODES.GOOGLE_AUTH_ERROR
+          ],
+      });
+    }
+  }
 }
