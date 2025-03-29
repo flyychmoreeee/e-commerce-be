@@ -1,0 +1,11 @@
+{{#> layouts/main title="Email Verification"}}
+    <h2>Verify Your Email</h2>
+    <p>Hello,</p>
+    <p>Thank you for registering with {{appName}}. Please use this verification code:</p>
+    
+    <div class="verification-code">
+        {{code}}
+    </div>
+
+    <p>This code will expire in {{validityPeriod}}.</p>
+{{/layouts/main}}

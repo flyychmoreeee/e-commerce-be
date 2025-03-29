@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <style>
+        /* Common styles */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        /* ... more styles ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        {{> header }}
+        {{{body}}}
+        {{> footer }}
+    </div>
+</body>
+</html>
