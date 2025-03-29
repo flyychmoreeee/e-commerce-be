@@ -3,6 +3,9 @@ import {
   Post,
   Body,
   InternalServerErrorException,
+  Req,
+  UseGuards,
+  Get,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,9 +28,12 @@ import {
   LOGIN_UNAUTHORIZED,
   REFRESH_TOKEN_SUCCESS,
   REFRESH_TOKEN_UNAUTHORIZED,
+  GOOGLE_LOGIN_ERROR,
+  GOOGLE_LOGIN_SUCCESS,
 } from './swagger/auth.swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { ERROR_CODES } from 'src/common/constants/response.constants';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -122,5 +128,22 @@ export class AuthController {
     return this.authService.refreshToken(
       refreshTokenDto,
     );
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({
+    summary: 'Initiate Google OAuth2 login',
+  })
+  @ApiResponse(GOOGLE_LOGIN_SUCCESS)
+  @ApiResponse(GOOGLE_LOGIN_ERROR)
+  async googleAuth() {
+    // Trigger Google OAuth2
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req) {
+    return this.authService.googleLogin(req.user);
   }
 }

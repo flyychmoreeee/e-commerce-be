@@ -21,8 +21,10 @@ model User {
   role                Role      @default(BUYER)
   refreshToken        String?
   isVerified          Boolean   @default(false)
-  verificationCode    String? // untuk menyimpan OTP
+  verificationCode    String? 
   verificationExpires DateTime?
+  googleId            String?   @unique
+  picture             String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 }

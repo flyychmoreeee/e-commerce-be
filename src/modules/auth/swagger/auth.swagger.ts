@@ -145,3 +145,45 @@ export const REFRESH_TOKEN_UNAUTHORIZED: ApiResponseOptions =
       },
     },
   };
+
+export const GOOGLE_LOGIN_SUCCESS: ApiResponseOptions =
+  {
+    status: 200,
+    description:
+      'Successfully logged in with Google',
+    schema: {
+      example: {
+        success: true,
+        code: '2104',
+        message:
+          'Successfully logged in with Google',
+        data: {
+          user: {
+            id: 1,
+            email: 'user@gmail.com',
+            username: 'user123',
+            picture: 'https://...',
+            role: 'BUYER',
+          },
+          accessToken: 'eyJhbG...',
+          refreshToken: 'eyJhbG...',
+        },
+      },
+    },
+  };
+
+export const GOOGLE_LOGIN_ERROR: ApiResponseOptions =
+  {
+    status: 500,
+    description:
+      'Failed to process Google authentication',
+    schema: {
+      example: {
+        success: false,
+        code: '1406',
+        error_message:
+          'Failed to process Google authentication',
+        timestamp: '2024-03-21T10:00:00.000Z',
+      },
+    },
+  };

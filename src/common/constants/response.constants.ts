@@ -17,6 +17,7 @@ export const SUCCESS_CODES = {
   VERIFICATION_SENT: '2201',
   EMAIL_VERIFIED: '2202',
   REGISTRATION_PENDING: '2203',
+  GOOGLE_LOGIN_SUCCESS: '2204',
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -57,6 +58,8 @@ export const SUCCESS_MESSAGES = {
     'Email verified successfully',
   [SUCCESS_CODES.REGISTRATION_PENDING]:
     'Registration pending. Please check your email for verification code',
+  [SUCCESS_CODES.GOOGLE_LOGIN_SUCCESS]:
+    'Successfully logged in with Google',
 } as const;
 
 export const ERROR_CODES = {
@@ -99,6 +102,8 @@ export const ERROR_CODES = {
   VERIFICATION_EXPIRED: '1403',
   EMAIL_ALREADY_VERIFIED: '1404',
   TOKEN_GENERATION_FAILED: '1405',
+  GOOGLE_AUTH_ERROR: '1406',
+  GOOGLE_AUTH_FAILED: '1407',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -173,4 +178,8 @@ export const ERROR_MESSAGES = {
     'Email already verified',
   [ERROR_CODES.TOKEN_GENERATION_FAILED]:
     'Failed to generate authentication tokens',
+  [ERROR_CODES.GOOGLE_AUTH_ERROR]:
+    'Failed to process Google authentication',
+  [ERROR_CODES.GOOGLE_AUTH_FAILED]:
+    'Failed to process Google authentication',
 } as const;
