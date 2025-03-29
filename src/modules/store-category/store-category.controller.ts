@@ -16,7 +16,20 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
+import {
+  ACTIVATED_STORE_CATEGORY_RESPONSE,
+  CREATE_STORE_CATEGORY_RESPONSE,
+  DELETE_STORE_CATEGORY_RESPONSE,
+  GET_ALL_STORE_CATEGORIES_RESPONSE,
+  GET_STORE_CATEGORY_BY_ID_RESPONSE,
+  UNACTIVE_STORE_CATEGORY_RESPONSE,
+  UPDATE_STORE_CATEGORY_RESPONSE,
+} from './swagger/store-category.swagger';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('store-category')
@@ -27,6 +40,10 @@ export class StoreCategoryController {
 
   @ApiBearerAuth()
   @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Create a new store category',
+  })
+  @ApiResponse(CREATE_STORE_CATEGORY_RESPONSE)
   @Post()
   async create(
     @Body()
@@ -45,6 +62,10 @@ export class StoreCategoryController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all store categories',
+  })
+  @ApiResponse(GET_ALL_STORE_CATEGORIES_RESPONSE)
   @Roles(Role.SUPER_ADMIN, Role.SELLER)
   @Get()
   async findAll() {
@@ -59,6 +80,10 @@ export class StoreCategoryController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get a store category by ID',
+  })
+  @ApiResponse(GET_STORE_CATEGORY_BY_ID_RESPONSE)
   @Roles(Role.SUPER_ADMIN)
   @Get(':id')
   async findOne(@Param('id') id: string) {
@@ -76,6 +101,10 @@ export class StoreCategoryController {
 
   @ApiBearerAuth()
   @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Update a store category by ID',
+  })
+  @ApiResponse(UPDATE_STORE_CATEGORY_RESPONSE)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -97,6 +126,10 @@ export class StoreCategoryController {
 
   @ApiBearerAuth()
   @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Delete a store category by ID',
+  })
+  @ApiResponse(DELETE_STORE_CATEGORY_RESPONSE)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.storeCategoryService.remove(+id);
@@ -109,6 +142,10 @@ export class StoreCategoryController {
 
   @ApiBearerAuth()
   @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Unactive a store category by ID',
+  })
+  @ApiResponse(UNACTIVE_STORE_CATEGORY_RESPONSE)
   @Patch(':id/unactive')
   async unActive(@Param('id') id: string) {
     await this.storeCategoryService.unActive(+id);
@@ -121,6 +158,10 @@ export class StoreCategoryController {
 
   @ApiBearerAuth()
   @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Activated a store category by ID',
+  })
+  @ApiResponse(ACTIVATED_STORE_CATEGORY_RESPONSE)
   @Patch(':id/activated')
   async activated(@Param('id') id: string) {
     await this.storeCategoryService.activated(
