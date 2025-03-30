@@ -455,13 +455,17 @@ export class AuthService {
       });
 
       return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
+        success: true,
+        code: SUCCESS_CODES.GENERAL_SUCCESS,
+        data: {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          },
         },
       };
     } catch (error) {

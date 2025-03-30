@@ -6,6 +6,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
 import { StoreCategoryModule } from './modules/store-category/store-category.module';
+import { StoreSellerModule } from './modules/store-seller/store-seller.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -16,6 +19,11 @@ import { StoreCategoryModule } from './modules/store-category/store-category.mod
     AuthModule,
     MailModule,
     StoreCategoryModule,
+    StoreSellerModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', // The URL prefix
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

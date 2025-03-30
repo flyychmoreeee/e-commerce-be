@@ -28,7 +28,7 @@ async function bootstrap() {
 
   // Global prefix
   app.setGlobalPrefix('e-commerce-v1', {
-    exclude: [''], // Mengecualikan root path dari prefix
+    exclude: [''],
   });
 
   // Global interceptors
