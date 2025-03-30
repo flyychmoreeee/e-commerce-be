@@ -21,16 +21,125 @@ model User {
   role                Role      @default(BUYER)
   refreshToken        String?
   isVerified          Boolean   @default(false)
-  verificationCode    String? 
+  verificationCode    String?
   verificationExpires DateTime?
   googleId            String?   @unique
   picture             String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
+
+  store           Store?
+  UserFollowStore UserFollowStore[]
 }
 
 enum Role {
   SUPER_ADMIN
   SELLER
   BUYER
+}
+
+model Store {
+  id          Int     @id @default(autoincrement())
+  userId      Int     @unique
+  user        User    @relation(fields: [userId], references: [id])
+  storeName   String  @unique
+  slug        String  @unique // untuk URL toko yang SEO-friendly
+  description String? @db.Text
+  logo        String
+  banner      String?
+
+  // Informasi Lokasi
+  address    String @db.Text
+  province   String
+  city       String
+  postalCode String
+
+  // Kontak
+  phoneNumber String
+  email       String?
+
+  // Jam Operasional
+  operationalHours OperationalHours[]
+  isOpen           Boolean            @default(true)
+
+  // Statistik Toko
+  totalProducts Int      @default(0)
+  rating        Float    @default(0)
+  joinDate      DateTime @default(now())
+
+  // Kebijakan Toko
+  returnPolicy   String? @db.Text
+  shippingPolicy String? @db.Text
+
+  // Status Toko
+  isVerified Boolean     @default(false)
+  isFeatured Boolean     @default(false)
+  status     StoreStatus @default(ACTIVE)
+
+  // Relasi
+  categories StoreCategoryRelation[]
+  followers  UserFollowStore[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OperationalHours {
+  id        Int     @id @default(autoincrement())
+  storeId   Int
+  store     Store   @relation(fields: [storeId], references: [id])
+  day       Day
+  openTime  String
+  closeTime String
+  isClosed  Boolean @default(false)
+}
+
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum StoreStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  BANNED
+}
+
+model StoreCategory {
+  id          Int                     @id @default(autoincrement())
+  name        String                  @unique
+  slug        String                  @unique
+  description String?                 @db.Text
+  isActive    Boolean                 @default(true)
+  stores      StoreCategoryRelation[] 
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+}
+
+model StoreCategoryRelation {
+  id         Int           @id @default(autoincrement())
+  storeId    Int
+  store      Store         @relation(fields: [storeId], references: [id])
+  categoryId Int
+  category   StoreCategory @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime      @default(now())
+
+  @@unique([storeId, categoryId])
+}
+
+model UserFollowStore {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  storeId   Int
+  store     Store    @relation(fields: [storeId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, storeId])
 }

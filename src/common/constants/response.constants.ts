@@ -6,6 +6,8 @@ export const SUCCESS_CODES = {
   DATA_UPDATED: '2003',
   DATA_DELETED: '2004',
   DATA_FETCHED: '2005',
+  DATA_UNACTIVE: '2006',
+  DATA_ACTIVATED: '2007',
 
   // 21XX: Auth
   LOGIN_SUCCESS: '2102',
@@ -39,6 +41,13 @@ export const SUCCESS_MESSAGES = {
   [SUCCESS_CODES.DATA_FETCHED]: (
     entity?: string,
   ) => `${entity || 'Data'} fetched`,
+  [SUCCESS_CODES.DATA_UNACTIVE]: (
+    entity?: string,
+  ) => `${entity || 'Data'} unactive`,
+  [SUCCESS_CODES.DATA_ACTIVATED]: (
+    entity?: string,
+  ) => `${entity || 'Data'} activated`,
+
 
   // 21XX: Auth
   [SUCCESS_CODES.LOGIN_SUCCESS]:

@@ -365,13 +365,17 @@ export class AuthService {
       });
 
       return {
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
+        success: true,
+        code: SUCCESS_CODES.LOGIN_SUCCESS,
+        data: {
+          accessToken,
+          refreshToken,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+          },
         },
       };
     } catch (error) {
