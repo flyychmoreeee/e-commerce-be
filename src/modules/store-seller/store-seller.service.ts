@@ -9,7 +9,6 @@ import { UpdateStoreSellerDto } from './dto/update-store-seller.dto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { ERROR_CODES } from 'src/common/constants/response.constants';
 import * as fs from 'fs';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class StoreSellerService {
@@ -605,18 +604,11 @@ export class StoreSellerService {
           };
         },
       );
-    } catch (error) {
-      // Handle error
-      if (
-        error instanceof
-        Prisma.PrismaClientKnownRequestError
-      ) {
-        throw new InternalServerErrorException({
-          code: ERROR_CODES.APP_SERVER_ERROR,
-          message: 'Failed to ban store and user',
-        });
-      }
-      throw error;
+    } catch {
+      throw new InternalServerErrorException({
+        code: ERROR_CODES.APP_SERVER_ERROR,
+        message: 'Failed to ban store and user',
+      });
     }
   }
 
