@@ -9,6 +9,7 @@ import { StoreCategoryModule } from './modules/store-category/store-category.mod
 import { StoreSellerModule } from './modules/store-seller/store-seller.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ProductCategoryModule } from './modules/product-category/product-category.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { join } from 'path';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads', // The URL prefix
     }),
+    ProductCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

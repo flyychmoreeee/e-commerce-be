@@ -28,8 +28,9 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  store           Store?
-  UserFollowStore UserFollowStore[]
+  // Relasi
+  store          Store?
+  followedStores UserFollowStore[]
 }
 
 enum Role {
@@ -79,9 +80,7 @@ model Store {
   // Relasi
   categories StoreCategoryRelation[]
   followers  UserFollowStore[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  Product    Product[]
 }
 
 model OperationalHours {
@@ -117,7 +116,7 @@ model StoreCategory {
   slug        String                  @unique
   description String?                 @db.Text
   isActive    Boolean                 @default(true)
-  stores      StoreCategoryRelation[] 
+  stores      StoreCategoryRelation[]
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
 }
@@ -142,4 +141,43 @@ model UserFollowStore {
   createdAt DateTime @default(now())
 
   @@unique([userId, storeId])
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  storeId     Int
+  categoryId  Int?
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  price       Int
+  stock       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  photos   ProductPhoto[]
+  category ProductCategory? @relation(fields: [categoryId], references: [id])
+  store    Store            @relation(fields: [storeId], references: [id])
+}
+
+model ProductPhoto {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  url       String
+  isPrimary Boolean  @default(false) // untuk menentukan foto utama
+  createdAt DateTime @default(now())
+}
+
+model ProductCategory {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
